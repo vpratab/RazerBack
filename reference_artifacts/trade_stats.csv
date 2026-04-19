@@ -1,0 +1,2 @@
+trade_count,win_rate_pct,profit_factor,avg_pnl_dollars,median_pnl_dollars,avg_pnl_pips,median_pnl_pips,avg_hold_minutes,median_hold_minutes,p90_hold_minutes,worst_trade_dollars,worst_trade_pips,best_trade_dollars,best_trade_pips
+154,66.88311688311688,2.0316709957421617,18.06647061408887,28.35259399170411,6.502337662337507,11.984999999999232,107.83766233766234,109.5,180.0,-104.43378011405483,-30.000000000001137,144.11372263809236,48.03000000000026

@@ -1,0 +1,30 @@
+name: Python Smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Compile runtime
+        run: |
+          python -m py_compile \
+            continuation_core.py \
+            locked_portfolio_runtime.py \
+            realistic_backtest.py \
+            fetch_oanda_bid_ask.py \
+            enrich_forex_research_data.py \
+            run_locked_portfolio.py

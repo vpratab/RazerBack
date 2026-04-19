@@ -1,0 +1,102 @@
+[
+  {
+    "name": "usdjpy_short_h12-15_rr1.25_imb2.5_node3_ret5_sig1_sl30_tp20-40-60_frac0.3-0.3-0.3_trail15_ttl180",
+    "instrument": "usdjpy",
+    "side": "short",
+    "hour_start": 12,
+    "hour_end": 15,
+    "range_ratio_min": 1.25,
+    "imbalance_min": 2.5,
+    "node_distance_max": 3.0,
+    "ret60_min_abs": 5.0,
+    "local_sigma_ratio_min": 1.0,
+    "stop_loss_pips": 30,
+    "ladder_pips": [
+      20,
+      40,
+      60
+    ],
+    "ladder_fractions": [
+      0.3,
+      0.3,
+      0.3
+    ],
+    "trail_stop_pips": 15,
+    "ttl_bars": 180
+  },
+  {
+    "name": "gbpusd_short_h12-15_rr1.25_imb4_node3_ret5_sig1_sl25_tp25-50-75_frac0.4-0.3-0.2_trail20_ttl180",
+    "instrument": "gbpusd",
+    "side": "short",
+    "hour_start": 12,
+    "hour_end": 15,
+    "range_ratio_min": 1.25,
+    "imbalance_min": 4.0,
+    "node_distance_max": 3.0,
+    "ret60_min_abs": 5.0,
+    "local_sigma_ratio_min": 1.0,
+    "stop_loss_pips": 25,
+    "ladder_pips": [
+      25,
+      50,
+      75
+    ],
+    "ladder_fractions": [
+      0.4,
+      0.3,
+      0.2
+    ],
+    "trail_stop_pips": 20,
+    "ttl_bars": 180
+  },
+  {
+    "name": "gbpjpy_short_h12-15_rr1.25_imb3.5_node3_ret10_sig1.05_sl30_tp25-50-75_frac0.4-0.3-0.2_trail20_ttl240",
+    "instrument": "gbpjpy",
+    "side": "short",
+    "hour_start": 12,
+    "hour_end": 15,
+    "range_ratio_min": 1.25,
+    "imbalance_min": 3.5,
+    "node_distance_max": 3.0,
+    "ret60_min_abs": 10.0,
+    "local_sigma_ratio_min": 1.05,
+    "stop_loss_pips": 30,
+    "ladder_pips": [
+      25,
+      50,
+      75
+    ],
+    "ladder_fractions": [
+      0.4,
+      0.3,
+      0.2
+    ],
+    "trail_stop_pips": 20,
+    "ttl_bars": 240
+  },
+  {
+    "name": "gbpusd_long_h12-15_rr1.25_imb4_node2_ret20_sig1_sl20_tp20-40-60_frac0.3-0.3-0.3_trail15_ttl240",
+    "instrument": "gbpusd",
+    "side": "long",
+    "hour_start": 12,
+    "hour_end": 15,
+    "range_ratio_min": 1.25,
+    "imbalance_min": 4.0,
+    "node_distance_max": 2.0,
+    "ret60_min_abs": 20.0,
+    "local_sigma_ratio_min": 1.0,
+    "stop_loss_pips": 20,
+    "ladder_pips": [
+      20,
+      40,
+      60
+    ],
+    "ladder_fractions": [
+      0.3,
+      0.3,
+      0.3
+    ],
+    "trail_stop_pips": 15,
+    "ttl_bars": 240
+  }
+]

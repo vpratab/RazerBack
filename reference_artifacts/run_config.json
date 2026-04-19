@@ -1,0 +1,20 @@
+{
+  "name": "continuation_portfolio_total_v1",
+  "description": "Locked continuation portfolio based on the corrected 185.48% ROI / -8.83% max drawdown frontier point.",
+  "config_path": "/Users/giansingh/Documents/GitHub/RazerBack/configs/continuation_portfolio_total_v1.json",
+  "data_dir": "/Users/giansingh/Documents/GitHub/razorback",
+  "output_dir": "/Users/giansingh/Documents/GitHub/RazerBack/reference_artifacts",
+  "start_balance": 1500.0,
+  "risk_pct": 2.9,
+  "max_leverage": 35.0,
+  "max_concurrent": 2,
+  "module_count": 4,
+  "workers": 4,
+  "instrument_universe": [
+    "gbpjpy",
+    "gbpusd",
+    "usdjpy"
+  ],
+  "trade_count_raw": 154,
+  "trade_count_filled": 154
+}
