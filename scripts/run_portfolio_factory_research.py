@@ -27,7 +27,7 @@ DEFAULT_DATA_DIR = Path("C:/fx_data/m1")
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "output" / "portfolio_factory_research"
 DEFAULT_CONTINUATION_CSV = REPO_ROOT / "output" / "universe_continuation_research_density" / "all_candidates.csv"
 DEFAULT_MULTIFAMILY_CSV = REPO_ROOT / "output" / "multifamily_fx_research" / "all_candidates.csv"
-DEFAULT_BASELINE_CONFIG = REPO_ROOT / "configs" / "optimal_portfolio.json"
+DEFAULT_BASELINE_CONFIG = REPO_ROOT / "configs" / "continuation_portfolio_total_v1.json"
 
 
 @dataclass

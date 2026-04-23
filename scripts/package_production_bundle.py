@@ -73,7 +73,7 @@ maturin develop --release
 4. Run the live engine:
 
 ```powershell
-python scripts\\live_trading_engine.py --config configs\\optimal_portfolio.json --data-dir C:\\fx_data\\m1 --live-root C:\\fx_data\\live
+python scripts\\live_trading_engine.py --config configs\\continuation_portfolio_total_v1.json --data-dir C:\\fx_data\\m1 --live-root C:\\fx_data\\live
 ```
 
 5. Register unattended Windows tasks:

@@ -26,7 +26,7 @@ from native_acceleration import (
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Benchmark the locked portfolio runtime with and without Rust acceleration.")
     parser.add_argument("--data-dir", default="C:/fx_data/m1")
-    parser.add_argument("--config", default=str(REPO_ROOT / "configs" / "optimal_portfolio.json"))
+    parser.add_argument("--config", default=str(REPO_ROOT / "configs" / "continuation_portfolio_total_v1.json"))
     parser.add_argument("--output-prefix", default=str(REPO_ROOT / "output" / "benchmark"))
     return parser.parse_args()
 

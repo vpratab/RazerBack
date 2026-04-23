@@ -322,7 +322,7 @@ def evaluate_spec(spec: ContinuationSpec, state: InstrumentState) -> bool:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the live OANDA continuation engine.")
-    parser.add_argument("--config", default=str(Path(__file__).resolve().parent.parent / "configs" / "optimal_portfolio.json"))
+    parser.add_argument("--config", default=str(Path(__file__).resolve().parent.parent / "configs" / "continuation_portfolio_total_v1.json"))
     parser.add_argument("--data-dir", default="C:/fx_data/m1")
     parser.add_argument("--live-root", default="C:/fx_data/live")
     parser.add_argument("--scenario", default="conservative", choices=("base", "conservative", "hard"))

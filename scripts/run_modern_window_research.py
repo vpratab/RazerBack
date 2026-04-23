@@ -9,7 +9,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "output" / "modern_window_research"
-DEFAULT_BASELINE_CONFIG = REPO_ROOT / "configs" / "optimal_portfolio.json"
+DEFAULT_BASELINE_CONFIG = REPO_ROOT / "configs" / "continuation_portfolio_total_v1.json"
 
 
 def parse_args() -> argparse.Namespace:
