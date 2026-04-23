@@ -12,3 +12,6 @@ data/*
 
 output/*
 !output/.gitkeep
+
+RazerBack_Production/
+rust/**/target/

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -7,7 +8,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from realistic_backtest import load_dataset_bundle
+from native_acceleration import simulate_trade_path_accelerated
+from realistic_backtest import compute_slippage_pips, load_dataset_bundle
 
 
 REQUIRED_ENRICHED_COLUMNS = [
@@ -18,6 +20,96 @@ REQUIRED_ENRICHED_COLUMNS = [
     "distance_to_node_pips",
     "local_sigma",
 ]
+
+
+@dataclass(frozen=True)
+class ExecutionProfile:
+    name: str
+    base_slippage_pips: float
+    vol_factor: float
+    entry_delay_bars: int
+    fill_probability: float
+    spread_multiplier: float
+
+
+EXECUTION_SCENARIOS: dict[str, ExecutionProfile] = {
+    "base": ExecutionProfile(
+        name="base",
+        base_slippage_pips=0.0,
+        vol_factor=0.0,
+        entry_delay_bars=0,
+        fill_probability=1.0,
+        spread_multiplier=1.0,
+    ),
+    "conservative": ExecutionProfile(
+        name="conservative",
+        base_slippage_pips=0.3,
+        vol_factor=0.5,
+        entry_delay_bars=1,
+        fill_probability=0.9,
+        spread_multiplier=1.2,
+    ),
+    "hard": ExecutionProfile(
+        name="hard",
+        base_slippage_pips=0.6,
+        vol_factor=1.0,
+        entry_delay_bars=2,
+        fill_probability=0.75,
+        spread_multiplier=1.5,
+    ),
+}
+
+
+def resolve_execution_profile(name: str | None) -> ExecutionProfile:
+    scenario_name = (name or "base").strip().lower()
+    try:
+        return EXECUTION_SCENARIOS[scenario_name]
+    except KeyError as exc:
+        raise SystemExit(f"Unknown execution scenario: {scenario_name}. Expected one of: {', '.join(EXECUTION_SCENARIOS)}") from exc
+
+
+def deterministic_fill_passes(
+    module_name: str,
+    instrument: str,
+    entry_timestamp: object,
+    fill_probability: float,
+) -> bool:
+    if fill_probability >= 1.0:
+        return True
+    if fill_probability <= 0.0:
+        return False
+
+    timestamp = pd.Timestamp(entry_timestamp).isoformat()
+    digest = hashlib.sha256(f"{module_name}|{instrument}|{timestamp}".encode("utf-8")).digest()
+    threshold = int.from_bytes(digest[:8], "big") / float(2**64)
+    return threshold <= fill_probability
+
+
+def adverse_price_adjustment(
+    side: str,
+    raw_price: float,
+    pip: float,
+    effective_spread_pips: float,
+    slippage_pips: float,
+    spread_multiplier: float,
+    is_entry: bool,
+) -> float:
+    extra_half_spread_pips = max(spread_multiplier - 1.0, 0.0) * effective_spread_pips / 2.0
+    total_penalty = (extra_half_spread_pips + max(slippage_pips, 0.0)) * pip
+    if total_penalty <= 0.0:
+        return float(raw_price)
+
+    if side == "long":
+        return float(raw_price + total_penalty) if is_entry else float(raw_price - total_penalty)
+    return float(raw_price - total_penalty) if is_entry else float(raw_price + total_penalty)
+
+
+def can_use_native_trade_path(profile: ExecutionProfile) -> bool:
+    return (
+        profile.base_slippage_pips <= 1e-12
+        and profile.vol_factor <= 1e-12
+        and abs(profile.spread_multiplier - 1.0) <= 1e-12
+    )
 
 
 @dataclass(frozen=True)
@@ -78,7 +170,12 @@ def load_datasets(data_dir: Path, instruments: list[str] | None = None) -> dict[
     return datasets
 
 
-def simulate_module(spec: ContinuationSpec, data: dict[str, object]) -> pd.DataFrame:
+def simulate_module(
+    spec: ContinuationSpec,
+    data: dict[str, object],
+    execution_profile: ExecutionProfile | None = None,
+) -> pd.DataFrame:
+    profile = execution_profile or resolve_execution_profile(None)
     enriched = data["enriched_df"]
     mid = data["mid"]
     ask = data["ask"]
@@ -110,20 +207,61 @@ def simulate_module(spec: ContinuationSpec, data: dict[str, object]) -> pd.DataF
     next_allowed = 0
 
     for idx in entries:
-        entry_idx = idx + 1
+        entry_idx = idx + 1 + profile.entry_delay_bars
         if entry_idx >= len(mid["open"]) - 1 or entry_idx < next_allowed:
             continue
 
+        entry_time = pd.Timestamp(data["timestamp"][entry_idx])
+        if not deterministic_fill_passes(spec.name, spec.instrument, entry_time, profile.fill_probability):
+            next_allowed = entry_idx + 1
+            continue
+
+        effective_spread_pips = float(data["effective_spread_pips"][entry_idx])
+        slippage_pips = compute_slippage_pips(
+            float(data["range_60"][entry_idx]),
+            float(data["range_240"][entry_idx]),
+            base_slippage=profile.base_slippage_pips,
+            vol_sensitivity=profile.vol_factor,
+        )
+
         if spec.side == "long":
-            entry_price = float(ask["open"][entry_idx])
+            entry_price = adverse_price_adjustment(
+                "long",
+                float(ask["open"][entry_idx]),
+                pip,
+                effective_spread_pips,
+                slippage_pips,
+                profile.spread_multiplier,
+                is_entry=True,
+            )
             stop_level = entry_price - spec.stop_loss_pips * pip
         else:
-            entry_price = float(bid["open"][entry_idx])
+            entry_price = adverse_price_adjustment(
+                "short",
+                float(bid["open"][entry_idx]),
+                pip,
+                effective_spread_pips,
+                slippage_pips,
+                profile.spread_multiplier,
+                is_entry=True,
+            )
             stop_level = entry_price + spec.stop_loss_pips * pip
 
-        trade = simulate_ladder_exit(spec, data, entry_idx, entry_price, stop_level)
+        trade = simulate_ladder_exit(
+            spec,
+            data,
+            entry_idx,
+            entry_price,
+            stop_level,
+            execution_profile=profile,
+        )
         if trade is None:
             continue
+        trade["entry_slippage_pips"] = slippage_pips
+        trade["fill_probability"] = profile.fill_probability
+        trade["spread_multiplier"] = profile.spread_multiplier
+        trade["entry_delay_bars"] = profile.entry_delay_bars
+        trade["execution_scenario"] = profile.name
         trades.append(trade)
         next_allowed = trade["exit_idx"] + 1
 
@@ -140,7 +278,9 @@ def simulate_ladder_exit(
     entry_idx: int,
     entry_price: float,
     stop_level: float,
+    execution_profile: ExecutionProfile | None = None,
 ) -> dict[str, object] | None:
+    profile = execution_profile or resolve_execution_profile(None)
     bid = data["bid"]
     ask = data["ask"]
     mid = data["mid"]
@@ -157,11 +297,63 @@ def simulate_ladder_exit(
     exit_idx = end_idx
     exit_price = float(bid["close"][end_idx] if spec.side == "long" else ask["close"][end_idx])
 
+    if can_use_native_trade_path(profile):
+        exec_open = bid["open"][entry_idx : end_idx + 1] if spec.side == "long" else ask["open"][entry_idx : end_idx + 1]
+        exec_high = bid["high"][entry_idx : end_idx + 1] if spec.side == "long" else ask["high"][entry_idx : end_idx + 1]
+        exec_low = bid["low"][entry_idx : end_idx + 1] if spec.side == "long" else ask["low"][entry_idx : end_idx + 1]
+        exec_close = bid["close"][entry_idx : end_idx + 1] if spec.side == "long" else ask["close"][entry_idx : end_idx + 1]
+        native_path = simulate_trade_path_accelerated(
+            exec_open,
+            exec_high,
+            exec_low,
+            exec_close,
+            entry_price,
+            stop_level,
+            [float(level) * pip for level in spec.ladder_pips],
+            [float(frac) for frac in spec.ladder_fractions],
+            float(spec.trail_stop_pips) * pip,
+            spec.ttl_bars,
+            spec.side,
+        )
+        exit_idx = entry_idx + int(native_path["exit_idx"])
+        exit_price = float(native_path["exit_price"])
+        partials = [
+            {
+                "time": pd.Timestamp(data["timestamp"][entry_idx + int(fill["bar_offset"])]).isoformat(),
+                "price": float(fill["price"]),
+                "fraction": float(fill["fraction"]),
+                "pips": float(fill["pnl_delta"]) / pip,
+            }
+            for fill in native_path["partials"]
+        ]
+        return {
+            "module": spec.name,
+            "instrument": spec.instrument,
+            "side": spec.side,
+            "entry_time": pd.Timestamp(data["timestamp"][entry_idx]),
+            "exit_time": pd.Timestamp(data["timestamp"][exit_idx]),
+            "entry_price": entry_price,
+            "exit_price": float(exit_price),
+            "pnl_pips": float(native_path["total_pnl_delta"]) / pip,
+            "stop_pips": float(spec.stop_loss_pips),
+            "pip_size": pip,
+            "partial_fills": partials,
+            "exit_idx": exit_idx,
+            "used_inferred_bid_ask": bool(data["inferred_bid_ask"]),
+        }
+
     for bar_idx in range(entry_idx, end_idx + 1):
         long_high = float(bid["high"][bar_idx])
         long_low = float(bid["low"][bar_idx])
         short_high = float(ask["high"][bar_idx])
         short_low = float(ask["low"][bar_idx])
+        effective_spread_pips = float(data["effective_spread_pips"][bar_idx])
+        exit_slippage_pips = compute_slippage_pips(
+            float(data["range_60"][bar_idx]),
+            float(data["range_240"][bar_idx]),
+            base_slippage=profile.base_slippage_pips,
+            vol_sensitivity=profile.vol_factor,
+        )
 
         if spec.side == "long":
             for level_idx, (level, frac) in enumerate(zip(spec.ladder_pips, spec.ladder_fractions)):
@@ -170,21 +362,31 @@ def simulate_ladder_exit(
                 target_price = entry_price + level * pip
                 if long_high >= target_price:
                     fill_fraction = min(remaining, frac)
-                    total_pnl_pips += level * fill_fraction
+                    realized_target_price = adverse_price_adjustment(
+                        "long",
+                        target_price,
+                        pip,
+                        effective_spread_pips,
+                        exit_slippage_pips,
+                        profile.spread_multiplier,
+                        is_entry=False,
+                    )
+                    realized_level = (realized_target_price - entry_price) / pip
+                    total_pnl_pips += realized_level * fill_fraction
                     remaining -= fill_fraction
                     hit_levels.add(level_idx)
                     partials.append(
                         {
                             "time": pd.Timestamp(data["timestamp"][bar_idx]).isoformat(),
-                            "price": target_price,
+                            "price": realized_target_price,
                             "fraction": fill_fraction,
-                            "pips": level,
+                            "pips": realized_level,
                         }
                     )
                     highest_price = max(highest_price, long_high)
                     if not trailing_active:
                         trailing_active = True
-                        trailing_stop = target_price - spec.trail_stop_pips * pip
+                        trailing_stop = realized_target_price - spec.trail_stop_pips * pip
 
             if trailing_active and remaining > 0.0:
                 highest_price = max(highest_price, long_high)
@@ -192,14 +394,23 @@ def simulate_ladder_exit(
 
             active_stop = trailing_stop if trailing_active else stop_level
             if remaining > 0.0 and long_low <= active_stop:
-                exit_pips = (active_stop - entry_price) / pip
+                realized_stop = adverse_price_adjustment(
+                    "long",
+                    active_stop,
+                    pip,
+                    effective_spread_pips,
+                    exit_slippage_pips,
+                    profile.spread_multiplier,
+                    is_entry=False,
+                )
+                exit_pips = (realized_stop - entry_price) / pip
                 total_pnl_pips += exit_pips * remaining
                 exit_idx = bar_idx
-                exit_price = active_stop
+                exit_price = realized_stop
                 partials.append(
                     {
                         "time": pd.Timestamp(data["timestamp"][bar_idx]).isoformat(),
-                        "price": active_stop,
+                        "price": realized_stop,
                         "fraction": remaining,
                         "pips": exit_pips,
                     }
@@ -213,21 +424,31 @@ def simulate_ladder_exit(
                 target_price = entry_price - level * pip
                 if short_low <= target_price:
                     fill_fraction = min(remaining, frac)
-                    total_pnl_pips += level * fill_fraction
+                    realized_target_price = adverse_price_adjustment(
+                        "short",
+                        target_price,
+                        pip,
+                        effective_spread_pips,
+                        exit_slippage_pips,
+                        profile.spread_multiplier,
+                        is_entry=False,
+                    )
+                    realized_level = (entry_price - realized_target_price) / pip
+                    total_pnl_pips += realized_level * fill_fraction
                     remaining -= fill_fraction
                     hit_levels.add(level_idx)
                     partials.append(
                         {
                             "time": pd.Timestamp(data["timestamp"][bar_idx]).isoformat(),
-                            "price": target_price,
+                            "price": realized_target_price,
                             "fraction": fill_fraction,
-                            "pips": level,
+                            "pips": realized_level,
                         }
                     )
                     lowest_price = min(lowest_price, short_low)
                     if not trailing_active:
                         trailing_active = True
-                        trailing_stop = target_price + spec.trail_stop_pips * pip
+                        trailing_stop = realized_target_price + spec.trail_stop_pips * pip
 
             if trailing_active and remaining > 0.0:
                 lowest_price = min(lowest_price, short_low)
@@ -235,14 +456,23 @@ def simulate_ladder_exit(
 
             active_stop = trailing_stop if trailing_active else stop_level
             if remaining > 0.0 and short_high >= active_stop:
-                exit_pips = (entry_price - active_stop) / pip
+                realized_stop = adverse_price_adjustment(
+                    "short",
+                    active_stop,
+                    pip,
+                    effective_spread_pips,
+                    exit_slippage_pips,
+                    profile.spread_multiplier,
+                    is_entry=False,
+                )
+                exit_pips = (entry_price - realized_stop) / pip
                 total_pnl_pips += exit_pips * remaining
                 exit_idx = bar_idx
-                exit_price = active_stop
+                exit_price = realized_stop
                 partials.append(
                     {
                         "time": pd.Timestamp(data["timestamp"][bar_idx]).isoformat(),
-                        "price": active_stop,
+                        "price": realized_stop,
                         "fraction": remaining,
                         "pips": exit_pips,
                     }
@@ -251,7 +481,23 @@ def simulate_ladder_exit(
                 break
 
     if remaining > 0.0:
-        ttl_price = float(bid["close"][end_idx] if spec.side == "long" else ask["close"][end_idx])
+        ttl_raw_price = float(bid["close"][end_idx] if spec.side == "long" else ask["close"][end_idx])
+        ttl_effective_spread_pips = float(data["effective_spread_pips"][end_idx])
+        ttl_slippage_pips = compute_slippage_pips(
+            float(data["range_60"][end_idx]),
+            float(data["range_240"][end_idx]),
+            base_slippage=profile.base_slippage_pips,
+            vol_sensitivity=profile.vol_factor,
+        )
+        ttl_price = adverse_price_adjustment(
+            spec.side,
+            ttl_raw_price,
+            pip,
+            ttl_effective_spread_pips,
+            ttl_slippage_pips,
+            profile.spread_multiplier,
+            is_entry=False,
+        )
         exit_pips = (ttl_price - entry_price) / pip if spec.side == "long" else (entry_price - ttl_price) / pip
         total_pnl_pips += exit_pips * remaining
         exit_idx = end_idx
@@ -278,6 +524,7 @@ def simulate_ladder_exit(
         "pip_size": pip,
         "partial_fills": partials,
         "exit_idx": exit_idx,
+        "used_inferred_bid_ask": bool(data["inferred_bid_ask"]),
     }
 
 
@@ -289,7 +536,24 @@ def simulate_portfolio(
     max_leverage: float,
     max_concurrent: int,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    trades = trades.sort_values("entry_time").reset_index(drop=True)
+    if trades.empty:
+        trades = pd.DataFrame(
+            columns=[
+                "module",
+                "instrument",
+                "side",
+                "entry_time",
+                "exit_time",
+                "entry_price",
+                "exit_price",
+                "pnl_pips",
+                "stop_pips",
+                "pip_size",
+                "partial_fills",
+            ]
+        )
+    else:
+        trades = trades.sort_values("entry_time").reset_index(drop=True)
     usdjpy_close = minute_series(datasets["usdjpy"]["df"])
     gbpusd_close = minute_series(datasets["gbpusd"]["df"])
 

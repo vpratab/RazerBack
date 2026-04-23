@@ -1,0 +1,13 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "fxbacktest_core"
+version = "0.1.0"
+description = "Rust acceleration hooks for RazerBack"
+requires-python = ">=3.11"
+
+[tool.maturin]
+module-name = "fxbacktest_core"
+bindings = "pyo3"

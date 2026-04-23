@@ -1,5 +1,8 @@
 numpy>=1.26
 pandas>=2.0
+polars>=1.0
 pyarrow>=14.0
 scikit-learn>=1.4
 requests>=2.31
+matplotlib>=3.8
+maturin>=1.7

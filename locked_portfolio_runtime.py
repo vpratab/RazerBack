@@ -10,7 +10,14 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from continuation_core import ContinuationSpec, load_datasets, simulate_module, simulate_portfolio
+from continuation_core import (
+    ContinuationSpec,
+    ExecutionProfile,
+    load_datasets,
+    resolve_execution_profile,
+    simulate_module,
+    simulate_portfolio,
+)
 
 
 @dataclass(frozen=True)
@@ -24,6 +31,7 @@ class LockedPortfolioConfig:
     risk_pct: float
     max_leverage: float
     max_concurrent: int
+    execution_profile: ExecutionProfile
     modules: list[dict[str, Any]]
 
 
@@ -54,6 +62,7 @@ def load_locked_config(
     risk_pct: float | None = None,
     max_leverage: float | None = None,
     max_concurrent: int | None = None,
+    scenario: str | None = None,
 ) -> LockedPortfolioConfig:
     config_path = config_path.expanduser().resolve()
     raw = json.loads(config_path.read_text(encoding="utf-8"))
@@ -77,6 +86,7 @@ def load_locked_config(
         risk_pct=float(risk_pct if risk_pct is not None else raw["risk_pct"]),
         max_leverage=float(max_leverage if max_leverage is not None else raw.get("max_leverage", 35.0)),
         max_concurrent=int(max_concurrent if max_concurrent is not None else raw.get("max_concurrent", 2)),
+        execution_profile=resolve_execution_profile(scenario),
         modules=modules,
     )
 
@@ -199,9 +209,10 @@ def _simulate_specs_parallel(
     specs: list[ContinuationSpec],
     datasets: dict[str, dict[str, object]],
     workers: int,
+    execution_profile: ExecutionProfile,
 ) -> pd.DataFrame:
     def run_spec(spec: ContinuationSpec) -> pd.DataFrame:
-        return simulate_module(spec, datasets[spec.instrument])
+        return simulate_module(spec, datasets[spec.instrument], execution_profile=execution_profile)
 
     if workers <= 1 or len(specs) <= 1:
         frames = [run_spec(spec) for spec in specs]
@@ -223,7 +234,7 @@ def build_locked_portfolio_artifacts(
     instrument_universe = required_instruments(specs)
     datasets = load_datasets(config.data_dir, instrument_universe)
     worker_count = max(1, min(workers or min(len(specs), os.cpu_count() or 1), len(specs) or 1))
-    trade_table = _simulate_specs_parallel(specs, datasets, worker_count)
+    trade_table = _simulate_specs_parallel(specs, datasets, worker_count, config.execution_profile)
     summary, module_table, weekly_table, monthly_table, yearly_table, filled_df = simulate_portfolio(
         trade_table,
         datasets,
@@ -239,10 +250,13 @@ def build_locked_portfolio_artifacts(
         "config_path": str(config.config_path),
         "data_dir": str(config.data_dir),
         "output_dir": str(config.output_dir),
+        "algorithm": "legacy_continuation",
         "start_balance": config.start_balance,
         "risk_pct": config.risk_pct,
         "max_leverage": config.max_leverage,
         "max_concurrent": config.max_concurrent,
+        "execution_scenario": config.execution_profile.name,
+        "execution_profile": asdict(config.execution_profile),
         "module_count": len(specs),
         "workers": worker_count,
         "instrument_universe": instrument_universe,
@@ -295,6 +309,7 @@ def render_locked_portfolio_report(artifacts: dict[str, Any]) -> str:
         f"- Risk per trade: `{config.risk_pct:.2f}%`",
         f"- Max leverage: `{config.max_leverage:.2f}`",
         f"- Max concurrent: `{config.max_concurrent}`",
+        f"- Execution scenario: `{config.execution_profile.name}`",
         f"- Worker threads: `{artifacts['run_config']['workers']}`",
         "",
         "## Artifacts",
@@ -357,6 +372,7 @@ def run_locked_portfolio(
     max_leverage: float | None = None,
     max_concurrent: int | None = None,
     workers: int | None = None,
+    scenario: str | None = None,
 ) -> Path:
     config = load_locked_config(
         config_path,
@@ -366,6 +382,7 @@ def run_locked_portfolio(
         risk_pct=risk_pct,
         max_leverage=max_leverage,
         max_concurrent=max_concurrent,
+        scenario=scenario,
     )
     artifacts = build_locked_portfolio_artifacts(config, workers=workers)
     return write_locked_portfolio_artifacts(artifacts)
@@ -380,6 +397,7 @@ def export_modules_json_pack(
     max_leverage: float,
     max_concurrent: int,
     workers: int | None = None,
+    scenario: str | None = None,
 ) -> Path:
     modules_json = modules_json.expanduser().resolve()
     raw_modules = json.loads(modules_json.read_text(encoding="utf-8"))
@@ -393,6 +411,7 @@ def export_modules_json_pack(
         risk_pct=float(risk_pct),
         max_leverage=float(max_leverage),
         max_concurrent=int(max_concurrent),
+        execution_profile=resolve_execution_profile(scenario),
         modules=normalize_module_rows(list(raw_modules)),
     )
     artifacts = build_locked_portfolio_artifacts(config, workers=workers)

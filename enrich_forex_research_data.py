@@ -5,8 +5,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.mixture import GaussianMixture
 
+from native_acceleration import hawkes_intensity_accelerated, rolling_gmm_nodes_accelerated
 from realistic_backtest import PIP_SIZES, load_dataset_bundle
 
 
@@ -108,13 +108,7 @@ def enrich_instrument(
 
 
 def hawkes_intensity(shocks: np.ndarray, alpha: float) -> np.ndarray:
-    out = np.zeros(len(shocks), dtype=np.float64)
-    current = 0.0
-    decay = float(np.exp(-alpha))
-    for idx, shock in enumerate(shocks):
-        current = current * decay + float(shock)
-        out[idx] = current
-    return out
+    return hawkes_intensity_accelerated(shocks, alpha)
 
 
 def rolling_hourly_gmm_nodes(
@@ -124,47 +118,7 @@ def rolling_hourly_gmm_nodes(
     lookback_hours: int,
     refit_hours: int,
 ) -> np.ndarray:
-    frame = pd.DataFrame({"timestamp": timestamp, "mid_close": mid_close})
-    hourly = (
-        frame.set_index("timestamp")
-        .resample("1H")
-        .agg(mid_close=("mid_close", "last"))
-        .dropna()
-        .reset_index()
-    )
-
-    node_by_hour = np.full(len(hourly), np.nan, dtype=np.float64)
-    values = hourly["mid_close"].to_numpy(dtype=np.float64)
-    refit_step = max(1, refit_hours)
-
-    for idx in range(len(hourly)):
-        if idx < lookback_hours:
-            continue
-        if idx % refit_step != 0 and np.isfinite(node_by_hour[idx - 1]):
-            node_by_hour[idx] = node_by_hour[idx - 1]
-            continue
-
-        sample = values[idx - lookback_hours : idx].reshape(-1, 1)
-        model = GaussianMixture(n_components=components, covariance_type="full", random_state=42)
-        model.fit(sample)
-        means = np.sort(model.means_.flatten())
-        current_price = values[idx]
-        nearest_idx = int(np.argmin(np.abs(means - current_price)))
-        node_by_hour[idx] = means[nearest_idx]
-
-    node_hourly = pd.DataFrame({"timestamp": hourly["timestamp"], "node_mean": node_by_hour})
-    node_hourly["node_mean"] = node_hourly["node_mean"].ffill().bfill()
-    merged = (
-        frame.assign(hour=lambda df: df["timestamp"].dt.floor("1H"))
-        .merge(
-            node_hourly.rename(columns={"timestamp": "hour"}),
-            on="hour",
-            how="left",
-        )
-        .drop(columns=["hour"])
-    )
-    merged["node_mean"] = merged["node_mean"].ffill().bfill()
-    return merged["node_mean"].to_numpy(dtype=np.float64)
+    return rolling_gmm_nodes_accelerated(timestamp, mid_close, components, lookback_hours, refit_hours)
 
 
 if __name__ == "__main__":

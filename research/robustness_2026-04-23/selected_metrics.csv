@@ -1,0 +1,6 @@
+candidate,scope,engine,overlay,roi_pct,sharpe_ann,max_drawdown_pct,win_rate_pct,profit_factor,trades,recent_avg_roi_pct,recent_avg_sharpe,worst_tested_year_roi_pct,worst_tested_drawdown_pct,notes
+balanced_plus_usdcad_h13,2025,m1,annual6_month4,20.795709,1.990259,-3.764878,70.588235,2.995040,34,37.782474,2.392326,-4.153524,-8.421624,current safest launch candidate
+balanced_plus_usdcad_h13,2025,exact_tick,annual6_month4,22.024300,2.102660,-3.692469,70.588235,3.176560,34,37.782474,2.392326,-4.153524,-8.421624,baseline exact-tick replay passed
+balanced_plus_usdcad_h13_plus_eurjpy_short_h10,2025,m1,annual6_month4,29.018630,2.376074,-3.764878,73.684211,3.642740,38,35.470315,2.413731,-5.305764,-8.421624,strongest add-on candidate on M1
+balanced_plus_usdcad_h13_plus_eurjpy_short_h10,2025,exact_tick,annual6_month4,30.330894,2.476458,-3.692469,73.684211,3.845921,38,35.470315,2.413731,-5.305764,-8.421624,strongest add-on candidate exact-tick replay passed
+all10_multifamily_diversified,2020-2025,m1,none,239.879577,1.699196,-8.310728,59.183673,2.041288,833,,,,,useful density lead but not launch-ready

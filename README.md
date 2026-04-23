@@ -31,6 +31,16 @@ Maintainer:
   - bid/ask data loader and shared execution-data helpers
 - `reference_artifacts/`
   - current validated reference output for the locked portfolio
+- `scripts/live_trading_engine.py`
+  - OANDA practice/live execution engine with SQLite trade ledger output
+- `scripts/generate_daily_tear_sheet.py`
+  - daily institutional PDF tear sheet generator
+- `scripts/generate_investor_report.py`
+  - weekly/monthly investor report generator
+- `scripts/register_production_tasks.ps1`
+  - Windows scheduled-task registration for live trading and reporting
+- `rust/fxbacktest_core`
+  - optional PyO3/maturin Rust acceleration module
 
 ## Strategy Snapshot
 
@@ -149,6 +159,15 @@ Each run exports:
 - Weekly, monthly, and yearly returns are NAV-based.
 - The runtime is clean and reproducible, but it is still an M1-bar simulator, not a full tick-level execution simulator.
 
+## Production Add-On
+
+The repo now includes a production-facing live stack for OANDA demo/live deployment:
+
+- `scripts/live_trading_engine.py` for live signal generation and order placement
+- `C:\fx_data\live\trades.db` as the trade-record ledger
+- `scripts/generate_daily_tear_sheet.py` and `scripts/generate_investor_report.py` for institutional reporting
+- `scripts/package_production_bundle.py` to assemble a single `RazerBack_Production` delivery folder
+
 ## Repo Hygiene
 
 - `data/` is for local market data and is ignored by git.
@@ -159,3 +178,23 @@ Each run exports:
 
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [reference_artifacts/README.md](reference_artifacts/README.md)
+- [research/robustness_2026-04-23/README.md](research/robustness_2026-04-23/README.md)
+
+## Research Workflows
+
+The repo now includes a research-oriented robustness workflow on top of the execution/runtime stack:
+
+- `scripts/run_multifamily_fx_research.py`
+  - broad breakout/reversal search over the current bid/ask M1 surface
+- `scripts/run_recent_weighted_portfolio_audit.py`
+  - recent-window and weighted portfolio selection audit
+- `scripts/run_breakout_ladder_exit_research.py`
+  - exit-structure and laddering research for breakout modules
+- `scripts/run_exact_tick_replay.py`
+  - exact-tick replay of a selected module set against raw Dukascopy bid/ask quotes
+- `scripts/run_pod_grade_audit.py`
+  - metric/pod-style reproducibility audit using selected module, summary, and yearly inputs
+
+The current clean research checkpoint is documented in:
+
+- [research/robustness_2026-04-23/README.md](research/robustness_2026-04-23/README.md)
