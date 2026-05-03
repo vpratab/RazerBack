@@ -17,7 +17,7 @@ from fx_pipeline_config import AGGREGATION_STATE_ROOT, ALL_PAIRS, DOWNLOAD_STATE
 
 
 DEFAULT_START_DATE = "2011-01-01"
-DEFAULT_END_DATE = "2026-01-01"
+DEFAULT_END_DATE = "2026-04-24"
 DEFAULT_SCENARIOS = ("base", "conservative", "hard")
 
 

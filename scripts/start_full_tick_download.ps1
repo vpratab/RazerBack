@@ -1,7 +1,7 @@
 param(
     [string]$PythonExe = "C:\fx_data\pipeline-venv\Scripts\python.exe",
     [string]$StartDate = "2011-01-01",
-    [string]$EndDate = "2026-01-01",
+    [string]$EndDate = "2026-04-24",
     [int]$Workers = 8
 )
 

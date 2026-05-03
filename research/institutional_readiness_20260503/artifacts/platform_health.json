@@ -1,0 +1,223 @@
+{
+  "generated_at": "2026-05-03T02:12:00Z",
+  "data_integrity": {
+    "status": "green",
+    "manifests_present": true,
+    "split_validation_ok": true,
+    "pair_count_validated": 11,
+    "manifests": {
+      "discovery_snapshot_manifest.json": {
+        "path": "C:\\Users\\saanvi\\Documents\\Codex\\2026-04-20-what-i-need-from-the-new\\institutionalization_phase1_20260501\\discovery_snapshot_manifest.json",
+        "present": true,
+        "file_count": 25,
+        "root": "C:\\Users\\saanvi\\Documents\\Codex\\2026-04-20-what-i-need-from-the-new\\phase1_discovery_snapshot_full_20260501"
+      },
+      "validation_snapshot_manifest.json": {
+        "path": "C:\\Users\\saanvi\\Documents\\Codex\\2026-04-20-what-i-need-from-the-new\\institutionalization_phase1_20260501\\validation_snapshot_manifest.json",
+        "present": true,
+        "file_count": 22,
+        "root": "C:\\Users\\saanvi\\Documents\\Codex\\2026-04-20-what-i-need-from-the-new\\phase1_validation_snapshot_full_20260501"
+      },
+      "final_test_snapshot_manifest.json": {
+        "path": "C:\\Users\\saanvi\\Documents\\Codex\\2026-04-20-what-i-need-from-the-new\\institutionalization_phase1_20260501\\final_test_snapshot_manifest.json",
+        "present": true,
+        "file_count": 22,
+        "root": "C:\\Users\\saanvi\\Documents\\Codex\\2026-04-20-what-i-need-from-the-new\\phase1_final_test_snapshot_full_20260501"
+      }
+    }
+  },
+  "research_credibility": {
+    "status": "red",
+    "qualified_edges": 4,
+    "locked_discovery_gate_present": true,
+    "locked_discovery_gate_survivors": 0,
+    "validation_full_sweep_present": true,
+    "validation_full_profitable_candidates": 74,
+    "validation_full_unique_profitable_paths": 35,
+    "validation_corr_filter_present": true,
+    "institutional_shortlist_size": 3,
+    "institutional_unique_pair_count": 2,
+    "single_pair_concentration_blocker": false,
+    "current_message": "The frozen candidate passed Discovery and Validation, but the untouched Final Test failed decisively, so the current book is not robust enough for deployment.",
+    "best_validation_lead": {
+      "module": "eurgbp_long_bo_h8_rr1.25_dist5_wickmax5_retge20_z2_sl20_tp15_shield11-6_ttl60",
+      "validation_sharpe_ann": 7.902155509722087,
+      "validation_pnl_dollars": 127.45332338474972,
+      "validation_trade_count": 9
+    },
+    "best_diversification_lead": {
+      "module": "usdjpy_short_bo_h14_rr0.85_dist5_wickmax15_retle-10_z1.5_sl30_tp45_shield22-7_ttl60",
+      "discovery_walk_positive_windows": 6,
+      "discovery_dsr": 0.9999999444116252,
+      "validation_sharpe_ann": 1.9691825623216388,
+      "validation_profit_factor": 1.3006649567489723,
+      "validation_trade_count": 51,
+      "validation_total_pnl_dollars": 211.9539935820066
+    },
+    "diversification_lane_survivor_count": 4
+  },
+  "portfolio_quality": {
+    "status": "red",
+    "book_present": true,
+    "module_count": 2,
+    "institutional_shortlist_size": 3,
+    "institutional_unique_pair_count": 2,
+    "single_pair_concentration_blocker": false,
+    "seed_validation_sharpe_ann": 2.692574282868534,
+    "seed_validation_max_drawdown": -0.0893092010670885,
+    "seed_validation_profit_factor": 1.3772012275486822,
+    "seed_validation_positive_years": 2,
+    "seed_validation_year_count": 3,
+    "message": "The frozen EURGBP/USDJPY candidate collapsed on the untouched Final Test, so the current portfolio is not fundable despite strong Validation behavior.",
+    "overlay_feasible_count": 3767,
+    "best_overlay_sharpe_ann": 2.7014770003508564,
+    "best_overlay_max_drawdown": -0.07101402168385429,
+    "best_overlay_profit_factor": 2.632372488790235,
+    "best_overlay_positive_years": 3,
+    "best_overlay_year_count": 3,
+    "best_overlay_total_pnl_dollars": 274.511867557915,
+    "best_overlay_structure": "eurgbp_a|usdjpy_z15_t60",
+    "best_overlay_modules": "eurgbp_a|usdjpy_z15_t60",
+    "best_overlay_pnl_2020": 243.57386012289527,
+    "best_overlay_pnl_2021": 0.7396900012920495,
+    "best_overlay_pnl_2022": 30.19831743372769,
+    "prior_best_overlay_sharpe_ann": 3.5214143173136785,
+    "prior_best_overlay_positive_years": 2,
+    "validation_overlay_passes_all_years": true,
+    "pre_final_test_candidate_package_present": true,
+    "pre_final_test_candidate_package_path": "C:\\Users\\saanvi\\Documents\\Codex\\2026-04-20-what-i-need-from-the-new\\locked_pre_final_test_candidate_package_20260503\\candidate_package.json"
+  },
+  "security_ops": {
+    "status": "green",
+    "credential_findings": 0,
+    "audit_report": "C:\\Users\\saanvi\\Documents\\Codex\\2026-04-20-what-i-need-from-the-new\\security_audit_20260501\\credential_security_audit.json",
+    "lock_audit_present": true
+  },
+  "execution_realism": {
+    "status": "red",
+    "proxy_gauntlet_present": true,
+    "slippage_reweight_probe_present": true,
+    "slippage_reweight_structure_count": 38,
+    "slippage_reweight_evaluated_rows": 46016,
+    "slippage_reweight_feasible_count": 268,
+    "best_slippage_reweight_row": {
+      "modules": "eurgbp_a|usdjpy_z15_t60",
+      "eurgbp_a": 2.5,
+      "usdjpy_z15_t60": 0.05,
+      "trade_count": 60,
+      "sharpe_ann": 2.7014770003508564,
+      "max_drawdown": -0.07101402168385429,
+      "profit_factor": 2.632372488790235,
+      "win_rate": 0.5666666666666667,
+      "total_pnl_dollars": 274.511867557915,
+      "positive_years": 3,
+      "year_count": 3,
+      "pnl_2020": 243.57386012289527,
+      "pnl_2021": 0.7396900012920495,
+      "pnl_2022": 30.19831743372769,
+      "passes_shape_gate": true
+    },
+    "event15_passing_count": 266,
+    "best_event15_row": {
+      "modules": "eurgbp_a|usdjpy_z15_t60",
+      "trade_count": 60,
+      "sharpe_ann": 2.7007573469955166,
+      "max_drawdown": -0.0710155305133013,
+      "profit_factor": 2.6315718978063534,
+      "positive_years": 3,
+      "year_count": 3,
+      "pnl_2021": 0.7396900012920495,
+      "passes_event15": true
+    },
+    "current_message": "Execution-friction-adjusted Validation looked strong, but the untouched Final Test exact-tick replay was negative and failed the institutional gate.",
+    "exact_candidate_check_present": true,
+    "exact_candidate_check": {
+      "scenario": "exact_tick",
+      "roi_pct": 21.518388442878322,
+      "sharpe_ann": 3.01941642634328,
+      "max_drawdown_pct": -0.06681552644854027,
+      "profit_factor": 2.9946414095430853,
+      "trades": 60,
+      "win_rate_pct": 58.333333333333336,
+      "total_pnl_dollars": 322.7758266431748,
+      "positive_years": 3,
+      "year_count": 3
+    },
+    "exact_candidate_check_delay_2s": {
+      "scenario": "exact_tick_delay_2s",
+      "roi_pct": 14.705264279281183,
+      "sharpe_ann": 2.7473621362823795,
+      "max_drawdown_pct": -0.0667747976587626,
+      "profit_factor": 2.367455262853688,
+      "trades": 60,
+      "win_rate_pct": 56.666666666666664,
+      "total_pnl_dollars": 220.57896418921774,
+      "positive_years": 3,
+      "year_count": 3
+    },
+    "exact_candidate_check_spread_0.3": {
+      "scenario": "exact_tick_spread_0.3",
+      "roi_pct": 20.424005631217135,
+      "sharpe_ann": 2.906881782169792,
+      "max_drawdown_pct": -0.06815537605475042,
+      "profit_factor": 2.847763046836414,
+      "trades": 60,
+      "win_rate_pct": 58.333333333333336,
+      "total_pnl_dollars": 306.36008446825696,
+      "positive_years": 3,
+      "year_count": 3
+    },
+    "final_test_runner_present": true,
+    "final_test_runner_path": "C:\\Users\\saanvi\\Documents\\Codex\\2026-04-20-what-i-need-from-the-new\\locked_final_test_one_shot_runner_20260503.py",
+    "final_test_holdout_status": "spent"
+  },
+  "final_test": {
+    "status": "red",
+    "executed": true,
+    "package_id": "locked_pre_final_test_candidate_package_20260503",
+    "report_path": "C:\\Users\\saanvi\\Documents\\Codex\\2026-04-20-what-i-need-from-the-new\\locked_final_test_one_shot_20260503\\final_test_report.md",
+    "exact_tick": {
+      "scenario": "exact_tick",
+      "roi_pct": -10.346123837813137,
+      "sharpe_ann": -1.1746124099677553,
+      "max_drawdown_pct": -0.15114731746369114,
+      "profit_factor": 0.4684715687990333,
+      "trades": 91,
+      "win_rate_pct": 54.94505494505495,
+      "total_pnl_dollars": -155.19185756719713,
+      "positive_years": 1,
+      "year_count": 3
+    },
+    "exact_tick_delay_2s": {
+      "scenario": "exact_tick_delay_2s",
+      "roi_pct": -7.059096135868137,
+      "sharpe_ann": -0.7152451909793686,
+      "max_drawdown_pct": -0.14555517154108455,
+      "profit_factor": 0.6346358498515929,
+      "trades": 91,
+      "win_rate_pct": 56.043956043956044,
+      "total_pnl_dollars": -105.88644203802208,
+      "positive_years": 1,
+      "year_count": 3
+    },
+    "exact_tick_spread_0.3": {
+      "scenario": "exact_tick_spread_0.3",
+      "roi_pct": -10.917161523848307,
+      "sharpe_ann": -1.228597582918341,
+      "max_drawdown_pct": -0.15419148175512842,
+      "profit_factor": 0.4470901269477943,
+      "trades": 91,
+      "win_rate_pct": 54.94505494505495,
+      "total_pnl_dollars": -163.75742285772458,
+      "positive_years": 1,
+      "year_count": 3
+    },
+    "fundability_verdict": "NO",
+    "message": "The untouched Final Test failed decisively: exact-tick Sharpe, profit factor, drawdown, and calendar-year consistency all missed the institutional bar, so the mission stops here without retuning."
+  },
+  "mission_status": {
+    "status": "stopped_after_final_test_failure",
+    "stopped_at": "2026-05-03T03:19:34.467486+00:00",
+    "reason": "Final Test failed and the mandate forbids retuning after the holdout is spent."
+  }
+}

@@ -35,6 +35,7 @@ DEFAULT_INSTRUMENTS = [
     "eurgbp",
     "eurchf",
     "audjpy",
+    "gbpjpy",
 ]
 
 WINDOW_OPTIONS = [
@@ -81,7 +82,7 @@ REQUIRED_ENRICHED_COLUMNS = [
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run a bounded continuation-module sweep across the 10-pair FX universe.")
+    parser = argparse.ArgumentParser(description="Run a bounded continuation-module sweep across the 11-pair FX universe.")
     parser.add_argument("--data-dir", default="C:/fx_data/m1")
     parser.add_argument(
         "--output-dir",
@@ -505,7 +506,7 @@ def render_report(
     lines = [
         "# Universe Continuation Research",
         "",
-        "This is a bounded continuation-family sweep over the full 10-pair universe using the current M1 bid/ask execution layer.",
+        "This is a bounded continuation-family sweep over the full 11-pair universe using the current M1 bid/ask execution layer.",
         "",
         "## Target",
         "",

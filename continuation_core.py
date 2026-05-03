@@ -554,8 +554,10 @@ def simulate_portfolio(
         )
     else:
         trades = trades.sort_values("entry_time").reset_index(drop=True)
-    usdjpy_close = minute_series(datasets["usdjpy"]["df"])
-    gbpusd_close = minute_series(datasets["gbpusd"]["df"])
+    close_series = {
+        instrument: minute_series(data["df"])
+        for instrument, data in datasets.items()
+    }
 
     realized_balance = start_balance
     active_positions: list[dict[str, object]] = []
@@ -584,8 +586,7 @@ def simulate_portfolio(
             trade.entry_price,
             trade.pip_size,
             minute,
-            usdjpy_close,
-            gbpusd_close,
+            close_series,
         )
         gross_open_notional = sum(float(position["usd_notional"]) for position in active_positions)
         risk_dollars = realized_balance * risk_pct
@@ -728,17 +729,35 @@ def dollar_exposure(
     entry_price: float,
     pip_size: float,
     minute: pd.Timestamp,
-    usdjpy_close: pd.Series,
-    gbpusd_close: pd.Series,
+    close_series: dict[str, pd.Series],
 ) -> tuple[float, float]:
-    if instrument in ("eurusd", "gbpusd"):
-        return pip_size, entry_price
-    if instrument == "usdjpy":
-        usdjpy = float(usdjpy_close.asof(minute))
-        return pip_size / usdjpy, 1.0
-    usdjpy = float(usdjpy_close.asof(minute))
-    gbpusd = float(gbpusd_close.asof(minute))
-    return pip_size / usdjpy, gbpusd
+    instrument = str(instrument).lower()
+    base_ccy = instrument[:3]
+    quote_ccy = instrument[3:]
+
+    def usd_per_quote_unit(currency: str) -> float:
+        if currency == "usd":
+            return 1.0
+        direct = f"{currency}usd"
+        inverse = f"usd{currency}"
+        if direct in close_series:
+            return float(close_series[direct].asof(minute))
+        if inverse in close_series:
+            inverse_rate = float(close_series[inverse].asof(minute))
+            if inverse_rate <= 0.0:
+                raise ValueError(f"Non-positive FX conversion rate for {inverse} at {minute}.")
+            return 1.0 / inverse_rate
+        raise KeyError(f"Missing FX conversion series for currency {currency!r} at {minute}.")
+
+    quote_to_usd = usd_per_quote_unit(quote_ccy)
+    pip_value_per_unit = pip_size * quote_to_usd
+    if base_ccy == "usd":
+        usd_per_unit = 1.0
+    elif quote_ccy == "usd":
+        usd_per_unit = entry_price
+    else:
+        usd_per_unit = entry_price * quote_to_usd
+    return float(pip_value_per_unit), float(usd_per_unit)
 
 
 def build_nav_period_table(

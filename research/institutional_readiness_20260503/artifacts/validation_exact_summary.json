@@ -1,0 +1,64 @@
+{
+  "generated_at": "2026-05-03T02:09:11.754128+00:00",
+  "scenario_count": 5,
+  "m1_weighted": {
+    "scenario": "m1_weighted",
+    "roi_pct": 22.627154464450427,
+    "sharpe_ann": 2.731007243358387,
+    "max_drawdown_pct": -0.06375216250856108,
+    "profit_factor": 1.4508706021046804,
+    "trades": 60,
+    "win_rate_pct": 56.666666666666664,
+    "total_pnl_dollars": 339.40731696675635,
+    "positive_years": 3,
+    "year_count": 3
+  },
+  "exact_tick": {
+    "scenario": "exact_tick",
+    "roi_pct": 21.518388442878322,
+    "sharpe_ann": 3.01941642634328,
+    "max_drawdown_pct": -0.06681552644854027,
+    "profit_factor": 2.9946414095430853,
+    "trades": 60,
+    "win_rate_pct": 58.333333333333336,
+    "total_pnl_dollars": 322.7758266431748,
+    "positive_years": 3,
+    "year_count": 3
+  },
+  "exact_tick_delay_2s": {
+    "scenario": "exact_tick_delay_2s",
+    "roi_pct": 14.705264279281183,
+    "sharpe_ann": 2.7473621362823795,
+    "max_drawdown_pct": -0.0667747976587626,
+    "profit_factor": 2.367455262853688,
+    "trades": 60,
+    "win_rate_pct": 56.666666666666664,
+    "total_pnl_dollars": 220.57896418921774,
+    "positive_years": 3,
+    "year_count": 3
+  },
+  "exact_tick_spread_0.1": {
+    "scenario": "exact_tick_spread_0.1",
+    "roi_pct": 21.153594172324585,
+    "sharpe_ann": 2.9823000848016665,
+    "max_drawdown_pct": -0.06726066562829136,
+    "profit_factor": 2.944885900735945,
+    "trades": 60,
+    "win_rate_pct": 58.333333333333336,
+    "total_pnl_dollars": 317.3039125848689,
+    "positive_years": 3,
+    "year_count": 3
+  },
+  "exact_tick_spread_0.3": {
+    "scenario": "exact_tick_spread_0.3",
+    "roi_pct": 20.424005631217135,
+    "sharpe_ann": 2.906881782169792,
+    "max_drawdown_pct": -0.06815537605475042,
+    "profit_factor": 2.847763046836414,
+    "trades": 60,
+    "win_rate_pct": 58.333333333333336,
+    "total_pnl_dollars": 306.36008446825696,
+    "positive_years": 3,
+    "year_count": 3
+  }
+}

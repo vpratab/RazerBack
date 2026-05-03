@@ -36,6 +36,7 @@ DEFAULT_INSTRUMENTS = [
     "eurgbp",
     "eurchf",
     "audjpy",
+    "gbpjpy",
 ]
 
 REQUIRED_ENRICHED_COLUMNS = [
@@ -165,7 +166,7 @@ def ret_label(ret15_min: float | None, ret15_max: float | None) -> str:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run reversal/breakout FX research across the 10-pair universe.")
+    parser = argparse.ArgumentParser(description="Run reversal/breakout FX research across the 11-pair universe.")
     parser.add_argument("--data-dir", default="C:/fx_data/m1")
     parser.add_argument(
         "--output-dir",

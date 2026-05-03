@@ -1,0 +1,54 @@
+{
+  "generated_at": "2026-05-03T03:17:53.844592+00:00",
+  "package_id": "locked_pre_final_test_candidate_package_20260503",
+  "candidate_book_path": "C:\\Users\\saanvi\\Documents\\Codex\\2026-04-20-what-i-need-from-the-new\\locked_validation_slippage_reweight_probe_20260502\\best_execution_robust_candidate_book.json",
+  "scenario_count": 4,
+  "m1_weighted": {
+    "scenario": "m1_weighted",
+    "roi_pct": -6.722417046133156,
+    "sharpe_ann": -0.2486488201310418,
+    "max_drawdown_pct": -0.2757934983325089,
+    "profit_factor": 0.9353274373658198,
+    "trades": 91,
+    "win_rate_pct": 53.84615384615385,
+    "total_pnl_dollars": -100.83625569199734,
+    "positive_years": 1,
+    "year_count": 3
+  },
+  "exact_tick": {
+    "scenario": "exact_tick",
+    "roi_pct": -10.346123837813137,
+    "sharpe_ann": -1.1746124099677553,
+    "max_drawdown_pct": -0.15114731746369114,
+    "profit_factor": 0.4684715687990333,
+    "trades": 91,
+    "win_rate_pct": 54.94505494505495,
+    "total_pnl_dollars": -155.19185756719713,
+    "positive_years": 1,
+    "year_count": 3
+  },
+  "exact_tick_delay_2s": {
+    "scenario": "exact_tick_delay_2s",
+    "roi_pct": -7.059096135868137,
+    "sharpe_ann": -0.7152451909793686,
+    "max_drawdown_pct": -0.14555517154108455,
+    "profit_factor": 0.6346358498515929,
+    "trades": 91,
+    "win_rate_pct": 56.043956043956044,
+    "total_pnl_dollars": -105.88644203802208,
+    "positive_years": 1,
+    "year_count": 3
+  },
+  "exact_tick_spread_0.3": {
+    "scenario": "exact_tick_spread_0.3",
+    "roi_pct": -10.917161523848307,
+    "sharpe_ann": -1.228597582918341,
+    "max_drawdown_pct": -0.15419148175512842,
+    "profit_factor": 0.4470901269477943,
+    "trades": 91,
+    "win_rate_pct": 54.94505494505495,
+    "total_pnl_dollars": -163.75742285772458,
+    "positive_years": 1,
+    "year_count": 3
+  }
+}

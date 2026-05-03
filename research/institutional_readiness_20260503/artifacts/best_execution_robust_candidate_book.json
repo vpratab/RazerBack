@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-05-03T01:30:49.349710+00:00",
+  "data_snapshot_id": "phase1_validation_snapshot_full_20260501",
+  "structure": "execution_robust_proxy_best",
+  "modules": [
+    {
+      "alias": "eurgbp_a",
+      "module": "eurgbp_long_bo_h8_rr1.25_dist5_wickmax5_retge20_z2_sl20_tp15_shield11-6_ttl60",
+      "weight": 2.5
+    },
+    {
+      "alias": "usdjpy_z15_t60",
+      "module": "usdjpy_short_bo_h14_rr0.85_dist5_wickmax15_retle-10_z1.5_sl30_tp45_shield22-7_ttl60",
+      "weight": 0.05
+    }
+  ],
+  "proxy_realism_metrics": {
+    "scenario": "0.5_pip_per_side",
+    "sharpe_ann": 2.7014770003508564,
+    "max_drawdown": -0.07101402168385429,
+    "profit_factor": 2.632372488790235,
+    "positive_years": 3,
+    "year_count": 3,
+    "pnl_2020": 243.57386012289527,
+    "pnl_2021": 0.7396900012920495,
+    "pnl_2022": 30.19831743372769
+  },
+  "proxy_event15_metrics": {
+    "modules": "eurgbp_a|usdjpy_z15_t60",
+    "trade_count": 60,
+    "sharpe_ann": 2.7007573469955166,
+    "max_drawdown": -0.0710155305133013,
+    "profit_factor": 2.6315718978063534,
+    "positive_years": 3,
+    "year_count": 3,
+    "pnl_2021": 0.7396900012920495,
+    "passes_event15": true
+  }
+}

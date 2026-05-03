@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import argparse
 import atexit
+import ctypes
+import ctypes.wintypes
 import json
-import msvcrt
 import os
 import sys
 import time
@@ -35,40 +36,78 @@ GMM_REFIT_HOURS = 4
 HISTORY_BARS = 60 * 24 * 45
 STREAM_SLEEP_SECONDS = 5
 DEFAULT_DRY_RUN_SECONDS = 90
+STILL_ACTIVE = 259
+PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 
 
 class SingleInstanceLock:
     def __init__(self, path: Path) -> None:
         self.path = path
-        self.handle = None
+        self.acquired = False
 
     def acquire(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.handle = open(self.path, "a+b")
-        try:
-            msvcrt.locking(self.handle.fileno(), msvcrt.LK_NBLCK, 1)
-        except OSError as exc:
-            self.handle.close()
-            self.handle = None
-            raise SystemExit(f"Live engine already running (lock held at {self.path}).") from exc
-        self.handle.seek(0)
-        self.handle.truncate()
-        self.handle.write(str(os.getpid()).encode("ascii"))
-        self.handle.flush()
-        atexit.register(self.release)
+        while True:
+            try:
+                fd = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            except FileExistsError:
+                payload = self._read_lock_payload()
+                pid = int(payload.get("pid", 0) or 0)
+                if pid > 0 and self._pid_running(pid):
+                    owner = payload.get("script", "unknown")
+                    raise SystemExit(
+                        f"Refusing to start: live engine lock exists at {self.path} for running PID {pid} ({owner})."
+                    )
+                try:
+                    self.path.unlink()
+                except FileNotFoundError:
+                    pass
+                continue
+            else:
+                with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                    json.dump(
+                        {
+                            "pid": os.getpid(),
+                            "created_at": pd.Timestamp.now(tz="UTC").isoformat(),
+                            "script": str(Path(__file__).resolve()),
+                            "cwd": os.getcwd(),
+                        },
+                        handle,
+                        indent=2,
+                    )
+                self.acquired = True
+                atexit.register(self.release)
+                return
 
     def release(self) -> None:
-        if self.handle is None:
+        if not self.acquired:
             return
         try:
-            self.handle.seek(0)
-            msvcrt.locking(self.handle.fileno(), msvcrt.LK_UNLCK, 1)
-        except OSError:
-            pass
-        try:
-            self.handle.close()
+            self.path.unlink(missing_ok=True)
         finally:
-            self.handle = None
+            self.acquired = False
+
+    def _read_lock_payload(self) -> dict[str, Any]:
+        try:
+            return json.loads(self.path.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+
+    @staticmethod
+    def _pid_running(pid: int) -> bool:
+        if pid <= 0:
+            return False
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        if not handle:
+            return False
+        try:
+            exit_code = ctypes.wintypes.DWORD()
+            if not kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code)):
+                return False
+            return int(exit_code.value) == STILL_ACTIVE
+        finally:
+            kernel32.CloseHandle(handle)
 
 
 def repo_to_oanda(instrument: str) -> str:
@@ -331,6 +370,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--stream-seconds", type=int)
     parser.add_argument("--test-trade", help="Instrument to trade once, e.g. EURUSD or EUR_USD.")
     parser.add_argument("--units", type=float, default=1.0, help="Unit size for --test-trade.")
+    parser.add_argument("--lock-only-seconds", type=int, default=0, help="Acquire the engine lock, wait, and exit without touching OANDA.")
     return parser.parse_args()
 
 
@@ -490,8 +530,12 @@ def run_test_trade(
 def main() -> None:
     args = parse_args()
     live_paths = ensure_live_paths(Path(args.live_root))
-    instance_lock = SingleInstanceLock(live_paths.root / "live_trading_engine.lock")
+    instance_lock = SingleInstanceLock(REPO_ROOT / "live_engine.lock")
     instance_lock.acquire()
+    if args.lock_only_seconds > 0:
+        print(f"Acquired {REPO_ROOT / 'live_engine.lock'} for {args.lock_only_seconds} seconds.")
+        time.sleep(args.lock_only_seconds)
+        return
     logger = configure_rotating_logger("razerback.live", live_paths.root / "live_trading.log")
     credentials = OandaCredentials.from_env(Path(args.env_file) if args.env_file else None)
     client = OandaClient(credentials)

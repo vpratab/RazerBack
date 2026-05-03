@@ -66,6 +66,22 @@ def first_env(*keys: str) -> str:
         value = os.getenv(key, "").strip()
         if value:
             return value
+        for scope in ("User", "Machine"):
+            scoped = os.environ.get(key, "").strip()
+            if scoped:
+                return scoped
+            try:
+                import winreg
+
+                root = winreg.HKEY_CURRENT_USER if scope == "User" else winreg.HKEY_LOCAL_MACHINE
+                subkey = r"Environment" if scope == "User" else r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+                with winreg.OpenKey(root, subkey) as handle:
+                    scoped, _ = winreg.QueryValueEx(handle, key)
+                scoped = str(scoped).strip()
+                if scoped:
+                    return scoped
+            except OSError:
+                continue
     return ""
 
 

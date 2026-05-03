@@ -46,7 +46,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Download resumable Dukascopy tick data into daily parquet files.")
     parser.add_argument("--pairs", nargs="+", default=ALL_PAIRS, choices=ALL_PAIRS)
     parser.add_argument("--start-date", default="2011-01-01")
-    parser.add_argument("--end-date", default="2026-01-01")
+    parser.add_argument("--end-date", default="2026-04-24")
     parser.add_argument("--date-order", choices=("ascending", "descending"), default="ascending")
     parser.add_argument("--start-year", type=int)
     parser.add_argument("--end-year", type=int)
@@ -297,6 +297,7 @@ def main() -> None:
 
     completed = 0
     total_rows = 0
+    failures_by_pair: dict[str, list[str]] = {pair: [] for pair in args.pairs}
     with ThreadPoolExecutor(max_workers=args.workers) as executor:
         future_map = {
             executor.submit(
@@ -311,8 +312,21 @@ def main() -> None:
         }
         for future in as_completed(future_map):
             pair, day = future_map[future]
-            result = future.result()
             completed += 1
+            try:
+                result = future.result()
+            except Exception as exc:  # pragma: no cover - defensive batch orchestration
+                failures_by_pair[pair].append(day.isoformat())
+                logging.error(
+                    "FAIL %s %s error=%s (%s/%s)",
+                    pair,
+                    day.isoformat(),
+                    exc,
+                    completed,
+                    len(tasks),
+                )
+                continue
+
             total_rows += result.rows
             status = "SKIP" if result.skipped_existing else "DONE"
             logging.info(
@@ -328,10 +342,19 @@ def main() -> None:
             )
 
     for pair in args.pairs:
+        if failures_by_pair[pair]:
+            logging.error(
+                "Did not mark %s complete; failed_days=%s",
+                pair,
+                ",".join(failures_by_pair[pair]),
+            )
+            continue
         write_completion_marker(pair, start_date, end_date)
         logging.info("Marked %s complete for %s -> %s", pair, start_date.isoformat(), end_date.isoformat())
 
     logging.info("Finished tick download batch. total_rows=%s tasks=%s", total_rows, len(tasks))
+    if any(failures_by_pair.values()):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
