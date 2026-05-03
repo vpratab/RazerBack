@@ -2,6 +2,19 @@
 
 Generated: 2026-05-03T03:19:34.468485+00:00
 
+## Executive Summary
+
+- Best combo that survived Discovery, Validation, and pre-Final-Test realism:
+  - `eurgbp_long_bo_h8_rr1.25_dist5_wickmax5_retge20_z2_sl20_tp15_shield11-6_ttl60` at weight `2.5`
+  - `usdjpy_short_bo_h14_rr0.85_dist5_wickmax15_retle-10_z1.5_sl30_tp45_shield22-7_ttl60` at weight `0.05`
+- This was the **final frozen candidate book**. An earlier 3-module Validation seed existed, but this 2-module EURGBP/USDJPY duo is the one that actually consumed the untouched Final Test.
+- End result:
+  - exact-tick Final Test ROI `-10.3461%`
+  - exact-tick Final Test Sharpe `-1.1746`
+  - exact-tick Final Test profit factor `0.4685`
+  - positive years `1/3`
+- Final verdict: **No**, not fundable
+
 ## Data Split
 
 - Discovery: `2011-01-01` to `2019-12-31`

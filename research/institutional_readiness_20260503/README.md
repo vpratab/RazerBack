@@ -16,6 +16,44 @@ The outcome is simple and important:
 
 **The platform infrastructure improved a lot. The final candidate did not pass the untouched Final Test. The correct fundability verdict is `No`.**
 
+## Executive Summary
+
+### Best combo that reached the Final Test
+
+The final frozen candidate was a **2-module / 2-pair** book:
+
+- `eurgbp_a`
+  - `eurgbp_long_bo_h8_rr1.25_dist5_wickmax5_retge20_z2_sl20_tp15_shield11-6_ttl60`
+  - weight `2.5`
+- `usdjpy_z15_t60`
+  - `usdjpy_short_bo_h14_rr0.85_dist5_wickmax15_retle-10_z1.5_sl30_tp45_shield22-7_ttl60`
+  - weight `0.05`
+
+This is the combo that ultimately won the locked Validation and pre-Final-Test realism process.
+
+Important distinction:
+
+- an earlier **3-module** Validation seed existed
+- the **final frozen candidate actually spent on the untouched Final Test** was this **2-module EURGBP + USDJPY duo**
+
+### End result
+
+That final combo **failed** the untouched Final Test.
+
+Exact-tick Final Test result:
+
+- ROI: `-10.3461%`
+- Sharpe: `-1.1746`
+- Max drawdown: `-15.11%`
+- Profit factor: `0.4685`
+- Positive years: `1/3`
+
+So the final answer from this mission is:
+
+- **best combo found:** the EURGBP / USDJPY duo above
+- **end result:** not robust enough
+- **fundability verdict:** `No`
+
 ## Mission Goal
 
 The mission was to answer one institutional question honestly:
